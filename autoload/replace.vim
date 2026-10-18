@@ -1,26 +1,29 @@
+let s:cpo_save = &cpo
+set cpo&vim
+
 "---------------------------------------------------------------
-" replace
+" replace#start
 "---------------------------------------------------------------
-function! Replace(mode) abort
-	if a:mode ==# 'v'
+function! replace#start(range, start, end)
+	if a:range
 		let tmp = @@
 		silent normal! gvy
-		let select_pattern = @@
+		let target_pattern = @@
 		let @@ = tmp
 	else
-		let select_pattern = expand('<cword>')
+		let target_pattern = expand('<cword>')
 	endif
 
-	let target_pattern = input('Target pattern: ', select_pattern)
-	if empty(target_pattern) | return | endif
+	let [ret, replace_pattern] = niftybox#utils#safe_input('Replace pattern: ', target_pattern)
+	if ret == v:false
+		return
+	endif
 
-	let replace_pattern = input('Replace pattern: ', target_pattern)
+	let [ret, opt] = niftybox#utils#safe_input("Replace option [w(Word Search)] [r(RegExp)] [Start line Number]: ")
+	if ret == v:false
+		return
+	endif
 
-	let opt = input("Replace option [w(Word Search)] [r(RegExp)] [Start line Number]: ")
-	if empty(opt) | let opt = "1" | endif
-
-	" コマンドラインクリア
-	echo "\r"
 	redraw
 
 	" Regular expression
@@ -36,3 +39,6 @@ function! Replace(mode) abort
     	exe start.",$s/".regexp.target_pattern."/".replace_pattern."/gc"
 	endif
 endfunction
+
+let &cpo = s:cpo_save
+unlet s:cpo_save
